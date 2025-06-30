@@ -1,0 +1,62 @@
+from fpdf import FPDF
+
+# Custom PDF class with header/footer
+class ThesisPDF(FPDF):
+    def header(self):
+        # Only add header for chapters, not preliminary pages
+        if self.page_no() > self.start_page_number:
+            self.set_font('Times', 'B', 12)
+            self.cell(0, 10, self.chapter_title, ln=True, align='C')
+            self.ln(5)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Times', 'I', 10)
+        if self.page_no() < self.start_page_number:
+            self.cell(0, 10, f"{self.page_no():x}", 0, 0, 'C')  # roman numerals
+        else:
+            self.cell(0, 10, str(self.page_no()), 0, 0, 'R')
+
+    def add_chapter(self, chapter_number, title, content):
+        self.add_page()
+        self.set_font('Times', 'B', 16)
+        self.chapter_title = f"Chapter {chapter_number}. {title}"
+        self.cell(0, 10, self.chapter_title, ln=True)
+        self.ln(5)
+        self.set_font('Times', '', 12)
+        self.multi_cell(0, 8, content)
+
+# Placeholder function to generate dummy text
+def generate_dummy_text(paragraphs=100):
+    return "\n\n".join([
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 2
+        for _ in range(paragraphs)
+    ])
+
+# Create PDF and add content
+pdf = ThesisPDF()
+pdf.set_auto_page_break(auto=True, margin=15)
+pdf.start_page_number = 10  # assuming 9 preliminary pages
+
+# Preliminary pages
+for i in range(9):
+    pdf.add_page()
+    pdf.set_font('Times', '', 12)
+    pdf.multi_cell(0, 8, f"Preliminary Page {i+1}")
+
+# Chapters
+chapters = [
+    "Introduction",
+    "Review of related literature",
+    "Design methodology of the study",
+    "Analysis and interpretation of data",
+    "Summary and conclusions"
+]
+
+# Approximate distribution of 300 pages: 60 pages per chapter
+for idx, chapter in enumerate(chapters, start=1):
+    content = generate_dummy_text(paragraphs=60 * 4)  # ~4 paragraphs per page
+    pdf.add_chapter(idx, chapter, content)
+
+# Output the PDF
+pdf.output("Innovative_Strategies_Sustainable_Housing_Thesis.pdf")
